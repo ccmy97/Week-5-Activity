@@ -1,0 +1,129 @@
+---
+title: "Assignment 2"
+author: "Clement Cheah"
+date: '2022-06-14'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+#Description of the data (Section 1)
+
+The data that I would be using today talks about the most common unisex names used in America. The data contains 929 names given to male and female. Nearly 1 percent of Americans have a unisex name and nearly 3 million individuals have one of the 929 names in the dataset.
+
+It is unsure on how the data was collected but it was partially derived from the SSA.The data set that was extracted was in a ".csv" file format. It is a flat file as it stores data in plain text format. It is also a fixed width file because each column is in integerial form except for column names. The dataset does not have a delimiter.
+```{r}
+library(rmarkdown)
+library(dplyr)
+library(ggplot2)
+```
+
+#Reading the data into R (Section 2)
+
+To allow RStudio to read the data, I copied the raw github link and pasted the link into a code chuck. The data is read into RStudio as "unisexdata"
+```{r, echo=FALSE}
+url <-"https://raw.githubusercontent.com/fivethirtyeight/data/master/unisex-names/unisex_names_table.csv"
+unisexdata<-read.csv(url)
+```
+
+
+#Clean the data (Section 3)
+
+1. First, I wanted to round the values in column total to a whole number.
+```{r}
+round(unisexdata[,'total'], digits = 0)
+```
+
+
+2. Secondly, I would like to change columns 'male_share', 'female_share', and 'gap' to percentages.
+
+```{r}
+round(unisexdata[,'male_share'], digits = 2)
+round(unisexdata[,'female_share'], digits =2)
+round(unisexdata[,'gap'], digits = 2)
+```
+
+```{r}
+unisexdata$male_share <- unisexdata$male_share*100
+unisexdata$female_share<-unisexdata$female_share*100
+unisexdata$gap<-unisexdata$gap*100
+```
+
+3. Next, I would like to rename all columns of the dataset except for total to better reflect the underlying data.
+```{r}
+colnames(unisexdata)[colnames(unisexdata)=='X'] <- 'No.'
+colnames(unisexdata)[colnames(unisexdata)=='male_share'] <- 'Male %'
+colnames(unisexdata)[colnames(unisexdata)=='female_share'] <- 'Female %'
+colnames(unisexdata)[colnames(unisexdata)=='gap'] <- 'Difference'
+```
+
+#Characteristics of the data (Section 4)
+
+This dataframe has r nrow(unisexdata)` rows and `rncol(unisexdata)` columns. The names of the columns and a brief description of each are in the table below:
+I wanted to include a table using Markdown directly or kable from the knitr package with 2 columns.
+```{r}
+library(knitr)
+kable(summary(unisexdata), caption="The descriptive summary statistics of each column in the dataset")
+kable(head(unisexdata,n=10), caption="The first 10 rows of each column in the dataset")
+```
+
+Here is the table a column name in the datafram with a very brief description of what each column measures.
+```{r}
+text_tbl <- data.frame(
+  Names = c("name", "total", "Male %", "Female %", "Difference"),
+  Description = c(
+    "First names from SSA",
+    "Total number of Americans using the name",
+    "Percentage of male counterparts with the name",
+    "Percentage of female counterparts with the name",
+    "Difference between Male % and Female %")
+)
+text_tbl
+```
+
+#Summary statistics (Section 5)
+
+I wanted to check if there are any missing values.I used function colsums to see the number of total missing values in each column. The output indicates that there is no missing values. Hence, the summary function can be used without removing any columns.
+
+```{r}
+colSums(is.na(unisexdata))
+```
+
+I wanted to pick three columns to use summary function
+```{r}
+data_pick3 <- select(unisexdata,'total','Male %','Female %')
+```
+
+```{r,include=TRUE}
+Summarytable<-summary(unisexdata)
+print(Summarytable)
+```
+
+Top 10 unisex names that are used in America.
+```{r}
+# I would like to showcase the Top 10 names that are the most commonly used in America
+commonnames <- unisexdata %>%
+  filter(row_number(desc(total))<=10)
+
+library(ggplot2)
+ggplot(data = commonnames) +
+  geom_bar(mapping = aes(x = `name`, y = `total`), stat = "identity")
+```
+
+Bottom 10 unisex names that are used in America.
+```{r}
+#I would like to showcase the Bottom 10 names that are not commonly used in America
+uncommonnames <- unisexdata %>%
+  filter(row_number(total)<=10)
+
+
+library(ggplot2)
+ggplot(data = uncommonnames) + 
+  geom_bar(mapping = aes(x = `name`, y = `total`), stat = "identity")
+```
